@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class Actor {
 	
-	public String lastname, firstname;
+	private String lastname, firstname;
 	
 	public Actor(String lastName, String firstName){
 		this.lastname = lastName;
