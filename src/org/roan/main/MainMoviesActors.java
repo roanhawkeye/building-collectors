@@ -84,50 +84,58 @@ public class MainMoviesActors {
 		// Map<release year, Map<Actor, # of movies during that year>>
 		
 //		Map<Integer, HashMap<Actor, AtomicLong>> collect = 
-		movies.stream()
-			.collect(
-					Collectors.groupingBy(
-							movie -> movie.releaseYear(),
-							Collector.of(
-								() -> new HashMap<Actor, AtomicLong>(), //supplier
-								(map, movie) -> {
-									movie.actors().forEach(
-											actor -> map.computeIfAbsent(actor, a -> new AtomicLong()).incrementAndGet()
-									);	
-								}, //accumulator
-								(map1, map2) -> {
-									map2.entrySet().forEach(
-											entry2 -> map1.merge(
-													 	entry2.getKey(),
-													 	entry2.getValue(),
-													 	(al1, al2) -> {
-													 		al1.addAndGet(al2.get());
-													 		return al1;
-													 	}
-													  )
-									);
-									return map1;
-								}, // combiner
-								Collector.Characteristics.IDENTITY_FINISH
-							)
-					)
-			)//	Map<Integer, HashMap<Actor, AtomicLong>>
-			.entrySet().stream()
-			.collect(
-					Collectors.toMap(
-							entry -> entry.getKey(),
-							entry -> entry.getValue().entrySet().stream()
-										.max(
-												Map.Entry.comparingByValue(Comparator.comparing(l -> l.get()))
-										)
-										.get()
-					)
-			) // Map<Integer, Map.Entry<Actor, AtomicLong>>
-			 // Map.Entry<Integer, Map.Entry<Actor, AtomicLong>>
-			;
+		Entry<Integer, Entry<Actor, AtomicLong>> actorWithMoreMoviesInAYear = 
+			movies.stream()
+				.collect(
+						Collectors.groupingBy(
+								movie -> movie.releaseYear(),
+								Collector.of(
+									() -> new HashMap<Actor, AtomicLong>(), //supplier
+									(map, movie) -> {
+										movie.actors().forEach(
+												actor -> map.computeIfAbsent(actor, a -> new AtomicLong()).incrementAndGet()
+										);	
+									}, //accumulator
+									(map1, map2) -> {
+										map2.entrySet().forEach(
+												entry2 -> map1.merge(
+														 	entry2.getKey(),
+														 	entry2.getValue(),
+														 	(al1, al2) -> {
+														 		al1.addAndGet(al2.get());
+														 		return al1;
+														 	}
+														  )
+										);
+										return map1;
+									}, // combiner
+									Collector.Characteristics.IDENTITY_FINISH
+								)
+						)
+				)//	Map<Integer, HashMap<Actor, AtomicLong>>
+				.entrySet().stream()
+				.collect(
+						Collectors.toMap(
+								entry -> entry.getKey(),
+								entry -> entry.getValue().entrySet().stream()
+											.max(
+													Map.Entry.comparingByValue(Comparator.comparing(l -> l.get()))
+											)
+											.get()
+						)
+				) // Map<Integer, Map.Entry<Actor, AtomicLong>>
+				.entrySet().stream()
+				.max(
+						Map.Entry.comparingByValue(
+								Comparator.comparing(
+										entry -> entry.getValue().get()
+								)
+						)
+				) // Map.Entry<Integer, Map.Entry<Actor, AtomicLong>>
+				.get();
 		
 		
-		
+				System.out.println("Actor with more movies in a Year: " + actorWithMoreMoviesInAYear);
 	}					
 	
 }
