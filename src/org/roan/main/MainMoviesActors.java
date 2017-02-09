@@ -83,7 +83,7 @@ public class MainMoviesActors {
 		// actor that played in the greatest # of movies during a year
 		// Map<release year, Map<Actor, # of movies during that year>>
 		
-		Map<Integer, HashMap<Actor, AtomicLong>> collect = 
+//		Map<Integer, HashMap<Actor, AtomicLong>> collect = 
 		movies.stream()
 			.collect(
 					Collectors.groupingBy(
@@ -111,7 +111,20 @@ public class MainMoviesActors {
 								Collector.Characteristics.IDENTITY_FINISH
 							)
 					)
-			);
+			)//	Map<Integer, HashMap<Actor, AtomicLong>>
+			.entrySet().stream()
+			.collect(
+					Collectors.toMap(
+							entry -> entry.getKey(),
+							entry -> entry.getValue().entrySet().stream()
+										.max(
+												Map.Entry.comparingByValue(Comparator.comparing(l -> l.get()))
+										)
+										.get()
+					)
+			) // Map<Integer, Map.Entry<Actor, AtomicLong>>
+			 // Map.Entry<Integer, Map.Entry<Actor, AtomicLong>>
+			;
 		
 		
 		
