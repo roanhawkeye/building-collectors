@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -76,6 +79,41 @@ public class MainMoviesActors {
 						.get();
 		
 		System.out.println("Most viewed actor: " + mostViewedActor);
+		
+		// actor that played in the greatest # of movies during a year
+		// Map<release year, Map<Actor, # of movies during that year>>
+		
+		Map<Integer, HashMap<Actor, AtomicLong>> collect = 
+		movies.stream()
+			.collect(
+					Collectors.groupingBy(
+							movie -> movie.releaseYear(),
+							Collector.of(
+								() -> new HashMap<Actor, AtomicLong>(), //supplier
+								(map, movie) -> {
+									movie.actors().forEach(
+											actor -> map.computeIfAbsent(actor, a -> new AtomicLong()).incrementAndGet()
+									);	
+								}, //accumulator
+								(map1, map2) -> {
+									map2.entrySet().forEach(
+											entry2 -> map1.merge(
+													 	entry2.getKey(),
+													 	entry2.getValue(),
+													 	(al1, al2) -> {
+													 		al1.addAndGet(al2.get());
+													 		return al1;
+													 	}
+													  )
+									);
+									return map1;
+								}, // combiner
+								Collector.Characteristics.IDENTITY_FINISH
+							)
+					)
+			);
+		
+		
 		
 	}					
 	
